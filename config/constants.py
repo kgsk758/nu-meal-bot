@@ -1,7 +1,20 @@
-#schedule site
+class ShopIndex:
+    IGAKUBU = 0
+    HOKUBU = 1
+    FOREST = 2
+    DINING = 3
+    SAI = 4
+
 class ScheduleSiteConfig:
     MAIN_PAGE = "https://www.nucoop.jp/shop/"
-
+    #shop names list
+    SHOP_NAMES = (
+        "医学部食堂(FOOD SQUARE)",
+        "北部食堂",
+        "ダイニングフォレスト",
+        "南部食堂1階 Mei-dining",
+        "南部食堂2階 彩〜Sai〜"
+    )
 
 class MenuSiteConfig:
     #URLs
@@ -10,10 +23,19 @@ class MenuSiteConfig:
     #Shop id
     HOKUBU_ID = 127
     FOREST_ID = 68
-    MEIDINING_ID = 100
+    DINING_ID = 100
     SAI_ID = 103
     IGAKUBU_ID = 105
-    #shop site post data
+
+    SHOP_IDS = (
+        IGAKUBU_ID,
+        HOKUBU_ID,
+        FOREST_ID,
+        DINING_ID,
+        SAI_ID
+    )
+    
+    #menu site post data
     FORM_DATA = {
         "params" : {
             "uv": "15",
@@ -30,3 +52,4 @@ class MenuSiteConfig:
 class ScraperConfig:
     USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
     TIMEOUT = 5
+
