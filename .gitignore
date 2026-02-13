@@ -2,3 +2,5 @@
 logs.txt
 config/.env
 api_keys.txt
+__pycache__/
+*.py[cod]

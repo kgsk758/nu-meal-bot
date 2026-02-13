@@ -22,6 +22,6 @@ class TwitterClient:
                 media = self.api.media_upload(filename="image.png", file=file)
                 media_ids = [media.media_id]
             self.client.create_tweet(text=text, media_ids=media_ids)
-            print("ツイートが正常に投稿されました。")
+            print("ツイートに成功")
         except tweepy.TweepyException as e:
-            print(f"ツイートの投稿に失敗:{e}")
+            print(f"ツイートに失敗:{e}")

@@ -3,3 +3,5 @@ beautifulsoup4==4.13.4
 Pillow==11.3.0
 tweepy==4.16.0
 python-dotenv==1.1.1
+# Pin urllib3 to v1 to avoid urllib3 v2 / OpenSSL incompatibility on this environment
+urllib3==1.26.16
