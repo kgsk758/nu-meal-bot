@@ -5,10 +5,13 @@ root_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(root_dir))
 
 from scrapers.menu_scraper import MenuScraper
+from scrapers.schedule_scraper import ScheduleScraper
 from config import constants
 
-print("start main.py")
+print("\nstart main.py\n")
 
 menu_scraper = MenuScraper()
 menu_res = menu_scraper.get_menu(constants.MenuSiteConfig.FOREST_ID)
-print(menu_res.text)
+schedule_scraper = ScheduleScraper()
+schedule_res = schedule_scraper.get_schedule()
+print(schedule_res)

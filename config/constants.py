@@ -1,5 +1,6 @@
 #schedule site
-SCHEDULE_URL = "https://www.nucoop.jp/shop/"
+class ScheduleSiteConfig:
+    MAIN_PAGE = "https://www.nucoop.jp/shop/"
 
 
 class MenuSiteConfig:
