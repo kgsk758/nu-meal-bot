@@ -9,13 +9,14 @@ from scrapers.schedule_scraper import ScheduleScraper
 from config import constants
 from scripts.parsers.schedule_parser import ScheduleParser
 from scripts.parsers.menu_parser import MenuParser
+from scripts.image_merger import ImageMerger
 
 print("\nstart main.py\n")
 
 menu_scraper = MenuScraper()
 schedule_scraper = ScheduleScraper()
 
-menu_res = menu_scraper.get_menu(constants.MenuSiteConfig.FOREST_ID)
+menu_res = menu_scraper.get_menu(constants.MenuSiteConfig.HOKUBU_ID)
 schedule_res = schedule_scraper.get_schedule()
 
 if menu_res is None or schedule_res is None:
@@ -32,3 +33,8 @@ print(shop_status)
 menu_parser = MenuParser(menu_res)
 img_links = menu_parser.get_img_links()
 print(img_links)
+
+if img_links:
+    merged_img = ImageMerger.merge_from_urls(urls=img_links, session=menu_scraper.session)
+    with open("merged.png", "wb") as f:
+        f.write(merged_img.getbuffer())
