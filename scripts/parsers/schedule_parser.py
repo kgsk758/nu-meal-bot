@@ -4,27 +4,31 @@ from .parser_base import ParserBase
 from config.constants import ScheduleSiteConfig
 
 class ScheduleParser(ParserBase):
+    def __init__(self, response):
+        super().__init__(response)
+        self.shop_tables = self._get_shop_tables()
+
     def get_shop_state_today(self, shop_idx, date:str):
         shop_name = ScheduleSiteConfig.SHOP_NAMES[shop_idx]
 
-        shop_tables = self.get_shop_tables()
+        shop_tables = self.shop_tables
 
         #get table
         table = None
         for shop_table in shop_tables:
-            if shop_table[1] == shop_name:
-                table = shop_table[0]
+            if shop_table["table_name"] == shop_name:
+                table = shop_table["table_elem"]
         if table is None:
             raise RuntimeError("could not find schedule table")
         
-        symbol_means = self.get_symbol_means(table)
-        date_symbols = self.get_date_symbols(table)
+        symbol_means = self._get_symbol_means(table)
+        date_symbols = self._get_date_symbols(table)
         
         if not date in date_symbols:
             raise RuntimeError("date not on the schedule")
         return symbol_means[date_symbols[date]]
         
-    def get_symbol_means(self, table:BeautifulSoup):
+    def _get_symbol_means(self, table:BeautifulSoup):
         state_dict = {}
         state_rows = table.find_all('dl')
         for state_row in state_rows:
@@ -34,7 +38,7 @@ class ScheduleParser(ParserBase):
 
         return state_dict
 
-    def get_date_symbols(self, table:BeautifulSoup):
+    def _get_date_symbols(self, table:BeautifulSoup):
         date_symbols = {}
         tds = table.find_all('td')
         for td in tds:
@@ -52,12 +56,12 @@ class ScheduleParser(ParserBase):
         
         return date_symbols
 
-    def get_shop_tables(self):
+    def _get_shop_tables(self):
         shops = self.soup.find_all('h3', class_="h3_title01 mb10")
         shop_tables = []
         for shop in shops:
             if shop.string in ScheduleSiteConfig.SHOP_NAMES:
-                shop_tables.append((shop.parent, shop.string))
+                shop_tables.append({"table_elem":shop.parent, "table_name":shop.string})
         if shop_tables == []:
             raise RuntimeError("could not get shop tables")
         
