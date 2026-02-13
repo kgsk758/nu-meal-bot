@@ -16,7 +16,7 @@ class ScheduleParser(ParserBase):
         #get table
         table = None
         for shop_table in shop_tables:
-            if shop_table["table_name"] == shop_name:
+            if shop_table["shop_name"] == shop_name:
                 table = shop_table["table_elem"]
         if table is None:
             raise RuntimeError("could not find schedule table")
@@ -61,7 +61,7 @@ class ScheduleParser(ParserBase):
         shop_tables = []
         for shop in shops:
             if shop.string in ScheduleSiteConfig.SHOP_NAMES:
-                shop_tables.append({"table_elem":shop.parent, "table_name":shop.string})
+                shop_tables.append({"table_elem":shop.parent, "shop_name":shop.string})
         if shop_tables == []:
             raise RuntimeError("could not get shop tables")
         
