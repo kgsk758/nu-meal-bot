@@ -15,7 +15,7 @@ class TwitterClient:
             )
         self.api = tweepy.API(self.auth)
     
-    def post(self, text, file=None):
+    def post(self, text: str, file = None):
         try:
             media_ids = None
             if file:

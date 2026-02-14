@@ -53,3 +53,8 @@ class ScraperConfig:
     USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
     TIMEOUT = 5
 
+class TweetTemplate:
+    def OPEN_TWEET(full_date: str, shop_name: str, shop_state: str) -> str:
+        return f"今日({full_date})の{shop_name}のメニューです。\n営業時間:{shop_state}"
+    def CLOSED_TWEET(full_date: str, closed_shops: str) -> str:
+            return f"今日({full_date})の{closed_shops}は休業です。"

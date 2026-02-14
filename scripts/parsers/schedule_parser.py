@@ -8,7 +8,9 @@ class ScheduleParser(ParserBase):
         super().__init__(response)
         self.shop_tables = self._get_shop_tables()
 
-    def get_shop_state_today(self, shop_idx, date:str):
+    def get_shop_state_today(self, shop_idx, day:int)->str:
+        date = str(day)
+
         shop_name = ScheduleSiteConfig.SHOP_NAMES[shop_idx]
 
         shop_tables = self.shop_tables
