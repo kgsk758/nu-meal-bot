@@ -79,8 +79,10 @@ for shop_idx in shop_idx_list:
         raise RuntimeError("couldn't get any image links")
     
     tweet = TweetBuilder.get_open_tweet_text(today,shop_names[shop_idx],shop_state)
+    twitter_client.post(text=tweet, file=merged_img)
     print(tweet)
 
 if closed_list:
     tweet = TweetBuilder.get_closed_tweet_text(today, closed_list)
+    twitter_client.post(text=tweet)
     print(tweet)
