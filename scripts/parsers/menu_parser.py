@@ -6,7 +6,7 @@ class MenuParser(ParserBase):
         super().__init__(response)
         self.img_elems = self.soup.select("img")
     
-    def get_img_links(self):
+    def get_img_links(self)->list[str]:
         image_links = []
         for img_elem in self.img_elems:
             src = img_elem.get("src")

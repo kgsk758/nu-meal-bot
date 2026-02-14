@@ -4,36 +4,29 @@ class ShopIndex:
     FOREST = 2
     DINING = 3
     SAI = 4
-
-class ScheduleSiteConfig:
-    MAIN_PAGE = "https://www.nucoop.jp/shop/"
-    #shop names list
-    SHOP_NAMES = (
+class Shops:
+    NAMES = (
         "医学部食堂(FOOD SQUARE)",
         "北部食堂",
         "ダイニングフォレスト",
         "南部食堂1階 Mei-dining",
         "南部食堂2階 彩〜Sai〜"
     )
+    IDS = (
+        105,
+        127,
+        68,
+        100,
+        103
+    )
+
+class ScheduleSiteConfig:
+    MAIN_PAGE = "https://www.nucoop.jp/shop/"
 
 class MenuSiteConfig:
     #URLs
     MAIN_PAGE = "https://signage.univcoop-tokai.net/smt_menu_ants2/index.php?uv=15"
     MENU_PAGE = "https://signage.univcoop-tokai.net/smt_menu_ants2/view_list.php"
-    #Shop id
-    HOKUBU_ID = 127
-    FOREST_ID = 68
-    DINING_ID = 100
-    SAI_ID = 103
-    IGAKUBU_ID = 105
-
-    SHOP_IDS = (
-        IGAKUBU_ID,
-        HOKUBU_ID,
-        FOREST_ID,
-        DINING_ID,
-        SAI_ID
-    )
     
     #menu site post data
     FORM_DATA = {

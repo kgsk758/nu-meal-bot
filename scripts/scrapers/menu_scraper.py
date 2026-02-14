@@ -1,12 +1,14 @@
 from .scraper_base import ScraperBase
-from config.constants import MenuSiteConfig
+from config.constants import MenuSiteConfig, Shops
+
 import copy
 
 class MenuScraper(ScraperBase):
     def set_cookie(self, URL):
         res = self._get(URL)
         return res
-    def get_menu(self, shop_id):
+    def get_menu(self, shop_idx: int):
+        shop_id = Shops.IDS[shop_idx]
         form_data = copy.deepcopy(MenuSiteConfig.FORM_DATA)
         form_data["data"]["shop_id"] = shop_id
         params = form_data["params"]

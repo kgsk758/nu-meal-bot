@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from .parser_base import ParserBase
 
-from config.constants import ScheduleSiteConfig
+from config.constants import Shops
 
 class ScheduleParser(ParserBase):
     def __init__(self, response):
@@ -11,7 +11,7 @@ class ScheduleParser(ParserBase):
     def get_shop_state_today(self, shop_idx, day:int)->str:
         date = str(day)
 
-        shop_name = ScheduleSiteConfig.SHOP_NAMES[shop_idx]
+        shop_name = Shops.NAMES[shop_idx]
 
         shop_tables = self.shop_tables
 
@@ -62,7 +62,7 @@ class ScheduleParser(ParserBase):
         shops = self.soup.find_all('h3', class_="h3_title01 mb10")
         shop_tables = []
         for shop in shops:
-            if shop.string in ScheduleSiteConfig.SHOP_NAMES:
+            if shop.string in Shops.NAMES:
                 shop_tables.append({"table_elem":shop.parent, "shop_name":shop.string})
         if shop_tables == []:
             raise RuntimeError("could not get shop tables")
