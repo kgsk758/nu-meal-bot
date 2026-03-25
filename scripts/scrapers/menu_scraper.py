@@ -20,6 +20,7 @@ class MenuScraper(ScraperBase):
                 data=data,
                 params=params
             )
+            print(menu_page_res.url)
             return menu_page_res
         
         else: return None

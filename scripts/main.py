@@ -63,7 +63,6 @@ for shop_idx in shop_idx_list:
 
     if menu_res is None:
         raise RuntimeError("failed to get menu_res")
-    print(menu_res)
     
     menu_parser = MenuParser(menu_res)
     img_links = menu_parser.get_img_links()
