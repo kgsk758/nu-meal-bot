@@ -13,17 +13,32 @@ class MenuScraper(ScraperBase):
         form_data["data"]["shop_id"] = shop_id
         params = form_data["params"]
         data = form_data["data"]
-        main_page_res = self.set_cookie(MenuSiteConfig.MAIN_PAGE)
-        if main_page_res:
-            menu_page_res = self._post(
+
+        self.set_cookie(MenuSiteConfig.MAIN_PAGE)
+
+        headers = {
+            "Referer": MenuSiteConfig.MAIN_PAGE,
+            "Origin": "https://signage.univcoop-tokai.net",
+        }
+
+        menu_page_res = self.session.post(
+            url=MenuSiteConfig.MENU_PAGE,
+            data=data,
+            params=params,
+            headers=headers,
+            timeout=5
+        )
+
+        if "index.php" in menu_page_res.url:
+            menu_page_res = self.session.post(
                 url=MenuSiteConfig.MENU_PAGE,
                 data=data,
-                params=params
+                params=params,
+                headers=headers,
+                timeout=5
             )
-            return menu_page_res
-        
-        else: return None
 
+        return menu_page_res
 
 
 
