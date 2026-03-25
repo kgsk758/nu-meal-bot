@@ -36,11 +36,6 @@ schedule_scraper = ScheduleScraper()
 
 schedule_res = schedule_scraper.get_schedule()
 
-#if img_links:
-#    merged_img = ImageMerger.merge_from_urls(urls=img_links, session=menu_scraper.session)
-#    with open("merged.png", "wb") as f:
-#        f.write(merged_img.getbuffer())
-
 shop_idx_list = [
     constants.ShopIndex.IGAKUBU,
     constants.ShopIndex.FOREST,
@@ -68,6 +63,7 @@ for shop_idx in shop_idx_list:
 
     if menu_res is None:
         raise RuntimeError("failed to get menu_res")
+    print(menu_res)
     
     menu_parser = MenuParser(menu_res)
     img_links = menu_parser.get_img_links()
