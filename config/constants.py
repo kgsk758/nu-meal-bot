@@ -38,7 +38,6 @@ class MenuSiteConfig:
         "data" : {
             "shop_id": None, #Shop id
             "client_id": "15",
-            "shop_name": "",
         },
     }
 
