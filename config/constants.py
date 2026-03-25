@@ -38,6 +38,8 @@ class MenuSiteConfig:
         "data" : {
             "shop_id": None, #Shop id
             "client_id": "15",
+            "shop_name": "", # キーが存在することが重要
+            "note": "",      # キーが存在することが重要
         },
     }
 

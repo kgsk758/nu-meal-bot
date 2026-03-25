@@ -24,34 +24,31 @@ class MenuScraper(ScraperBase):
             "Referer": MenuSiteConfig.MAIN_PAGE,
         })
 
-        print(f"\n--- Debug: Fetching menu for shop {shop_id} ---")
-
         # 1. Initial GET to get the base cookie
-        res1 = self.session.get(MenuSiteConfig.MAIN_PAGE)
-        print(f"Step 1: Initial GET. URL: {res1.url}, Cookies: {len(self.session.cookies)}")
+        self.session.get(MenuSiteConfig.MAIN_PAGE)
 
-        # 2. First POST attempt
-        res2 = self.session.post(
+        # 2. First POST attempt without following redirects
+        # The server might set a session cookie during this redirect
+        res = self.session.post(
             url=MenuSiteConfig.MENU_PAGE,
             data=data,
             params=params,
+            allow_redirects=False,
             timeout=5
         )
-        print(f"Step 2: Warm-up POST. Final URL: {res2.url}, Cookies: {len(self.session.cookies)}")
 
         # 3. Short wait
         time.sleep(0.5)
 
-        # 4. Second POST attempt
+        # 4. Second POST attempt (following redirects this time)
+        # If the first was a redirect, the second one with the new cookies should succeed
         menu_page_res = self.session.post(
             url=MenuSiteConfig.MENU_PAGE,
             data=data,
             params=params,
+            allow_redirects=True,
             timeout=5
         )
-        print(f"Step 3: Final POST. Final URL: {menu_page_res.url}, Cookies: {len(self.session.cookies)}")
-        print(f"   Response snippet: {menu_page_res.text[:100].strip()}")
 
         return menu_page_res
-
 
