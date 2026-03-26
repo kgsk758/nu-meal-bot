@@ -16,39 +16,42 @@ class MenuScraper(ScraperBase):
         params = form_data["params"]
         data = form_data["data"]
 
-        # Set browser-like headers for the entire session
-        self.session.headers.update({
+        # 1. First GET to trigger the 302 and receive PHPSESSID
+        self.session.get(MenuSiteConfig.MAIN_PAGE, allow_redirects=True)
+
+        # 2. Second GET to confirm session with a 200 OK, mimicking the browser's redirect follow
+        self.session.get(MenuSiteConfig.MAIN_PAGE)
+
+        # Browser-like headers for the POST request
+        headers = {
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
             "Accept-Language": "ja,en;q=0.9",
             "Origin": "https://signage.univcoop-tokai.net",
             "Referer": MenuSiteConfig.MAIN_PAGE,
-        })
+            "Upgrade-Insecure-Requests": "1",
+            "Cache-Control": "max-age=0",
+        }
 
-        # 1. Initial GET to get the base cookie
-        self.session.get(MenuSiteConfig.MAIN_PAGE)
-
-        # 2. First POST attempt without following redirects
-        # The server might set a session cookie during this redirect
-        res = self.session.post(
-            url=MenuSiteConfig.MENU_PAGE,
-            data=data,
-            params=params,
-            allow_redirects=False,
-            timeout=5
-        )
-
-        # 3. Short wait
-        time.sleep(0.5)
-
-        # 4. Second POST attempt (following redirects this time)
-        # If the first was a redirect, the second one with the new cookies should succeed
+        # 3. First POST attempt
         menu_page_res = self.session.post(
             url=MenuSiteConfig.MENU_PAGE,
             data=data,
             params=params,
+            headers=headers,
             allow_redirects=True,
             timeout=5
         )
 
-        return menu_page_res
+        # 4. If still redirected to index.php, wait and try once more with the updated session
+        if "index.php" in menu_page_res.url:
+            time.sleep(0.5)
+            menu_page_res = self.session.post(
+                url=MenuSiteConfig.MENU_PAGE,
+                data=data,
+                params=params,
+                headers=headers,
+                allow_redirects=True,
+                timeout=5
+            )
 
+        return menu_page_res
