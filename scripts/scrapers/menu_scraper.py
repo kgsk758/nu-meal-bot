@@ -8,34 +8,25 @@ class MenuScraper(ScraperBase):
         return self._get(url)
 
     def log_request(self, label, response):
-        """リクエストとレスポンスの全容を詳細に記録する"""
         req = response.request
         print(f"\n{'='*20} {label} {'='*20}")
-        print(f"[Request]")
-        print(f"  URL:    {req.url}")
-        print(f"  Method: {req.method}")
-        print(f"  Headers:")
-        for k, v in req.headers.items():
-            print(f"    {k}: {v}")
-        if req.body:
-            print(f"  Body:   {req.body}")
-        
-        print(f"\n[Response]")
-        print(f"  Status: {response.status_code}")
-        print(f"  URL:    {response.url}")
-        print(f"  Cookies in Response: {response.cookies.get_dict()}")
-        if "Location" in response.headers:
-            print(f"  Location: {response.headers['Location']}")
+        print(f"[Request] {req.method} {req.url}")
+        print(f"  Cookie: {req.headers.get('Cookie')}")
+        print(f"  Body:   {req.body}")
+        print(f"[Response] Status: {response.status_code}")
+        print(f"  Location: {response.headers.get('Location')}")
+        print(f"  Final URL: {response.url}")
         print(f"{'='*50}\n")
 
     def get_menu(self, shop_idx: int):
         shop_id = Shops.IDS[shop_idx]
         
-        # パラメータとデータの構築
-        params = MenuSiteConfig.FORM_DATA["params"]
-        data = {"shop_id": str(shop_id), "client_id": "15"}
+        # パラメータを含むフルURL (URLエンコード済みの形式で固定)
+        full_url = "https://signage.univcoop-tokai.net/smt_menu_ants2/view_list.php?uv=15&current_day=0&current_page=no_page"
+        # ユーザー様のHTMLに合わせたデータ
+        post_data = f"shop_id={shop_id}&client_id=15"
         
-        # ユーザー様提供のヘッダー
+        # ヘッダーをブラウザと完全に一致させる
         headers = {
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
             "Accept-Language": "ja",
@@ -53,41 +44,30 @@ class MenuScraper(ScraperBase):
             "sec-ch-ua-platform": '"Windows"',
         }
 
-        # 1. 最初のPOST (302リダイレクトを期待して手動制御)
-        res1 = self.session.post(
-            MenuSiteConfig.MENU_PAGE, 
-            data=data, 
-            params=params, 
-            headers=headers,
-            allow_redirects=False,
-            timeout=5
-        )
+        # 1. 最初のPOST (302リダイレクトを誘発)
+        # allow_redirects=False を指定して、勝手にGETへ遷移させない
+        res1 = self.session.post(full_url, data=post_data, headers=headers, allow_redirects=False, timeout=5)
         self.log_request("STEP 1: INITIAL POST", res1)
 
         # 2. リダイレクト先 (index.php) をGETで訪問
-        if res1.status_code == 302:
-            location = res1.headers.get("Location")
-            if location:
-                if location.startswith("/"):
-                    location = "https://signage.univcoop-tokai.net" + location
-                
-                # GET用のヘッダー調整
-                get_headers = headers.copy()
-                get_headers.pop("Content-Type", None)
-                get_headers.pop("Origin", None)
-                
-                res2 = self.session.get(location, headers=get_headers, timeout=5)
-                self.log_request("STEP 2: REDIRECT GET", res2)
-                time.sleep(0.5)
+        location = res1.headers.get("Location")
+        if location:
+            if location.startswith("/"):
+                location = "https://signage.univcoop-tokai.net" + location
+            
+            # GETリクエストを実行
+            res2 = self.session.get(location, headers=headers, timeout=5)
+            self.log_request("STEP 2: REDIRECT GET (index.php)", res2)
+            time.sleep(0.5)
 
         # 3. 本命の2回目POST
-        res3 = self.session.post(
-            MenuSiteConfig.MENU_PAGE, 
-            data=data, 
-            params=params, 
-            headers=headers,
-            timeout=5
-        )
+        # ここもあえて allow_redirects=False にして挙動を直接確認
+        res3 = self.session.post(full_url, data=post_data, headers=headers, allow_redirects=False, timeout=5)
         self.log_request("STEP 3: FINAL POST", res3)
 
-        return res3
+        # もしSTEP 3が200なら成功。もし302ならまだ何かが足りない。
+        if res3.status_code == 200:
+            return res3
+        
+        # 302の場合は、一応リダイレクトを追いかけた結果を返して、Parserに任せる
+        return self.session.post(full_url, data=post_data, headers=headers, timeout=5)
