@@ -10,10 +10,14 @@ class MenuScraper(ScraperBase):
     def get_menu(self, shop_idx: int):
         shop_id = Shops.IDS[shop_idx]
         
-        form_data = copy.deepcopy(MenuSiteConfig.FORM_DATA)
-        form_data["data"]["shop_id"] = str(shop_id)
-        
-        # ユーザー様のブラウザ情報を正確に反映（Refererなし）
+        # ユーザー様のHTMLに合わせたデータ構成
+        data = {
+            "shop_id": str(shop_id),
+            "client_id": "15"
+        }
+        params = MenuSiteConfig.FORM_DATA["params"]
+
+        # ユーザー様提供のヘッダを忠実に再現
         headers = {
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
             "Accept-Language": "ja",
@@ -31,36 +35,30 @@ class MenuScraper(ScraperBase):
             "sec-ch-ua-platform": '"Windows"',
         }
 
-        # 1. 最初のPOST（allow_redirects=False）でPHPSESSIDを取得
-        # ユーザー様の実験結果（初回は302リダイレクトされる）をシミュレート
+        # --- ステップ1 & 2: 初回POSTとリダイレクト先GETの完遂 ---
+        # requestsはデフォルトで302リダイレクトをGETで追いかけます。
+        # これにより「POST -> 302 -> GET index.php」というブラウザの初回挙動を再現し、
+        # セッションを確立させます。
         self.session.post(
             MenuSiteConfig.MENU_PAGE, 
-            data=form_data["data"], 
-            params=form_data["params"],
+            data=data, 
+            params=params,
             headers=headers,
-            allow_redirects=False,
             timeout=5
         )
 
-        # 2. 本番のPOST
-        # 取得したPHPSESSIDを用いて、200 OKのレスポンスを期待します
+        # ブラウザの操作間隔を模倣
+        time.sleep(0.5)
+
+        # --- ステップ3: 本命の2回目POST ---
+        # すでにセッション(PHPSESSID)が確立・有効化されているため、
+        # このリクエストで 200 OK とメニュー内容が返ってくるはずです。
         res = self.session.post(
             MenuSiteConfig.MENU_PAGE, 
-            data=form_data["data"], 
-            params=form_data["params"],
+            data=data, 
+            params=params,
             headers=headers,
             timeout=5
         )
-        
-        # 念のためのリトライ処理
-        if "index.php" in res.url:
-            time.sleep(0.5)
-            res = self.session.post(
-                MenuSiteConfig.MENU_PAGE, 
-                data=form_data["data"], 
-                params=form_data["params"],
-                headers=headers,
-                timeout=5
-            )
 
         return res
