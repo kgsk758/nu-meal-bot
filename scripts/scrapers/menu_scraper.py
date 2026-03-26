@@ -11,56 +11,49 @@ class MenuScraper(ScraperBase):
         shop_id = Shops.IDS[shop_idx]
         
         # クエリパラメータを含むフルURL
-        full_url = "https://signage.univcoop-tokai.net/smt_menu_ants2/view_list.php?uv=15&current_day=0&current_page=no_page"
-        # ユーザー様のHTMLに合わせたPOSTデータ
-        post_data = f"shop_id={shop_id}&client_id=15"
+        url = "https://signage.univcoop-tokai.net/smt_menu_ants2/view_list.php?uv=15&current_day=0&current_page=no_page"
+        # ユーザー様のHTMLに合わせたPOSTデータ形式
+        data = f"shop_id={shop_id}&client_id=15"
         
-        # ユーザー様のブラウザ情報を完全に再現
-        headers = {
+        # 1. セッションの完全な初期化
+        self.session.cookies.clear()
+        self.session.headers.clear()
+        
+        # ブラウザの全ヘッダーをセッションに固定
+        # requestsのデフォルトヘッダーによるボット判定を避けます
+        self.session.headers.update({
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
             "Accept-Language": "ja",
             "Accept-Encoding": "gzip, deflate, br, zstd",
-            "Cache-Control": "max-age=0",
             "Connection": "keep-alive",
-            "Content-Type": "application/x-www-form-urlencoded",
             "Origin": "null",
-            "Sec-Fetch-Dest": "document",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "cross-site",
-            "Sec-Fetch-User": "?1",
+            "Content-Type": "application/x-www-form-urlencoded",
             "Upgrade-Insecure-Requests": "1",
             "sec-ch-ua": '"Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"',
             "sec-ch-ua-mobile": "?0",
             "sec-ch-ua-platform": '"Windows"',
-        }
+            "Sec-Fetch-Site": "cross-site",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-User": "?1",
+        })
 
-        # セッションヘッダーを一旦クリアして固定
-        self.session.headers.clear()
+        # 人間らしく見せるためのダミークッキー (Google Analytics)
+        # ユーザー様の成功ログに含まれていたものを模倣します
+        self.session.cookies.set("_ga", "GA1.1.1763706508.1774526162", domain="signage.univcoop-tokai.net")
+        self.session.cookies.set("_gid", "GA1.2.1748237429.1774526162", domain="signage.univcoop-tokai.net")
 
-        # 1. 最初のPOST（302リダイレクトを誘発させてクッキーを確保）
-        res1 = self.session.post(full_url, data=post_data, headers=headers, allow_redirects=False, timeout=5)
-
-        # 2. リダイレクト先 (index.php) をGETで訪問
-        # これによりサーバー側でセッションが「有効な人間」としてマークされることを狙います
-        location = res1.headers.get("Location")
-        if location:
-            if location.startswith("/"):
-                location = "https://signage.univcoop-tokai.net" + location
-            
-            get_headers = headers.copy()
-            get_headers.pop("Content-Type", None)
-            get_headers.pop("Origin", None)
-            
-            self.session.get(location, headers=get_headers, timeout=5)
-            # ブラウザの人間的な操作間隔を長めに模倣
-            time.sleep(2.0)
-
-        # 3. 本命の2回目POST
-        # Refererをindex.phpに設定して「ページ内からの遷移」を装う
-        final_headers = headers.copy()
-        final_headers["Referer"] = "https://signage.univcoop-tokai.net/smt_menu_ants2/index.php?uv=15"
+        # 2. 最初のアクセス（空打ち）
+        # 自動リダイレクトを有効にし、POST -> 302 -> GET index.php までを一気に終わらせます。
+        # これにより、セッションが確立され、かつ「メインページを訪問済み」の状態になります。
+        self.session.post(url, data=data, timeout=5)
         
-        res = self.session.post(full_url, data=post_data, headers=final_headers, timeout=5)
+        # サーバー側のセッション書き込み時間を考慮して待機
+        time.sleep(1.0)
+
+        # 3. 本命のアクセス（再びアクセス）
+        # すでにクッキーを保持した状態での再アクセスなので、今度は 200 OK が期待できます。
+        res = self.session.post(url, data=data, timeout=5)
 
         return res
