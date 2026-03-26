@@ -13,51 +13,54 @@ class MenuScraper(ScraperBase):
         form_data = copy.deepcopy(MenuSiteConfig.FORM_DATA)
         form_data["data"]["shop_id"] = str(shop_id)
         
-        data = form_data["data"]
-        params = form_data["params"]
-
-        # ブラウザにより近いヘッダを設定
+        # ユーザー様のブラウザ情報を正確に反映（Refererなし）
         headers = {
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-            "Accept-Language": "ja,en;q=0.9",
-            "Origin": "null",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "Accept-Language": "ja",
+            "Cache-Control": "max-age=0",
+            "Connection": "keep-alive",
             "Content-Type": "application/x-www-form-urlencoded",
+            "Origin": "null",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "cross-site",
+            "Sec-Fetch-User": "?1",
             "Upgrade-Insecure-Requests": "1",
+            "sec-ch-ua": '"Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"',
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": '"Windows"',
         }
 
-        print(f"\n--- Debug Start: shop_id {shop_id} ---")
+        # 1. 最初のPOST（allow_redirects=False）でPHPSESSIDを取得
+        # ユーザー様の実験結果（初回は302リダイレクトされる）をシミュレート
+        self.session.post(
+            MenuSiteConfig.MENU_PAGE, 
+            data=form_data["data"], 
+            params=form_data["params"],
+            headers=headers,
+            allow_redirects=False,
+            timeout=5
+        )
 
-        # 1. まずはメインページをGETしてクッキーを初期化 (通常の訪問パターン)
-        self.session.get(MenuSiteConfig.MAIN_PAGE, headers=headers)
-        print(f"[Step 1] GET to MAIN_PAGE: Cookies={self.session.cookies.get_dict()}")
-
-        # 2. 本番POST
+        # 2. 本番のPOST
+        # 取得したPHPSESSIDを用いて、200 OKのレスポンスを期待します
         res = self.session.post(
             MenuSiteConfig.MENU_PAGE, 
-            data=data, 
-            params=params,
+            data=form_data["data"], 
+            params=form_data["params"],
             headers=headers,
             timeout=5
         )
         
-        print(f"[Step 2] POST to MENU_PAGE: Final URL={res.url}")
-
-        # 3. もしリダイレクトされていたら「一度リダイレクト先を踏んでから再試行」
+        # 念のためのリトライ処理
         if "index.php" in res.url:
-            print(f" - Still redirected. Trying 'visit redirect destination' strategy.")
             time.sleep(0.5)
-            # リダイレクト先を一度GETして訪問履歴を作る
-            self.session.get(res.url, headers=headers)
-            # 再度POST
             res = self.session.post(
                 MenuSiteConfig.MENU_PAGE, 
-                data=data, 
-                params=params,
+                data=form_data["data"], 
+                params=form_data["params"],
                 headers=headers,
                 timeout=5
             )
-            print(f"[Step 3] Retry POST: Final URL={res.url}")
-
-        print(f"--- Debug End ---\n")
 
         return res
