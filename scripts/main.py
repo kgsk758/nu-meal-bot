@@ -61,8 +61,10 @@ for shop_idx in shop_idx_list:
     
     menu_res = menu_scraper.get_menu(shop_idx)
 
-    if menu_res is None:
-        raise RuntimeError("failed to get menu_res")
+    # サーバー側で無効(disabled)にされている店舗はindex.phpにリダイレクトされる
+    if "index.php" in menu_res.url:
+        print(f"Skipping {shop_names[shop_idx]}: Shop menu is currently unavailable (redirected to index).")
+        continue
     
     menu_parser = MenuParser(menu_res)
     img_links = menu_parser.get_img_links()
@@ -71,7 +73,8 @@ for shop_idx in shop_idx_list:
     if img_links:
         merged_img = ImageMerger.merge_from_urls(urls=img_links, session=menu_scraper.session)
     else:
-        raise RuntimeError("couldn't get any image links")
+        print(f"No images found for {shop_names[shop_idx]}. Skipping.")
+        continue
     
     tweet = TweetBuilder.get_open_tweet_text(today,shop_names[shop_idx],shop_state)
     twitter_client.post(text=tweet, file=merged_img)
