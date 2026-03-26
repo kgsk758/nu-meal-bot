@@ -60,11 +60,6 @@ for shop_idx in shop_idx_list:
         continue
     
     menu_res = menu_scraper.get_menu(shop_idx)
-
-    # サーバー側で無効(disabled)にされている店舗はindex.phpにリダイレクトされる
-    if "index.php" in menu_res.url:
-        print(f"Skipping {shop_names[shop_idx]}: Shop menu is currently unavailable (redirected to index).")
-        continue
     
     menu_parser = MenuParser(menu_res)
     img_links = menu_parser.get_img_links()
