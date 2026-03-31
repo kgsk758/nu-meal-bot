@@ -1,5 +1,9 @@
 from config.constants import TweetTemplate
-from datetime import date
+from datetime import datetime, timezone, timedelta
+
+JST = timezone(timedelta(hours=9))
+dt_jst = datetime.now(JST)
+date = dt_jst.date()
 
 class TweetBuilder:
     def get_open_tweet_text(date: date, shop_name: str, shop_state: str)->str:
