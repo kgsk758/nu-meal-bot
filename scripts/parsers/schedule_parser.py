@@ -51,7 +51,7 @@ class ScheduleParser(ParserBase):
             span_text = span_element.get_text(strip=True)
             only_symbol = text.replace(span_text, '')
             
-            date_symbols[span_element.string] = only_symbol
+            date_symbols[span_text] = only_symbol
         
         if date_symbols == {}:
             raise RuntimeError("failed to get date symbols")

@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from datetime import date
+from datetime import date, datetime, timezone, timedelta
 import os
 from dotenv import load_dotenv
 
@@ -16,7 +16,8 @@ from twitter_client import TwitterClient
 
 print("\nstart main.py\n")
 
-today = date.today()
+JST = timezone(timedelta(hours=9))
+today = datetime.now(JST).date()
 
 env_path = root_dir / 'config' / '.env'
 load_dotenv(dotenv_path=env_path)
